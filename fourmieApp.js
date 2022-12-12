@@ -26,10 +26,15 @@ function makeRows(rows, cols) {
     if (c === parseInt(rows * cols / 2)) {
       cell.classList.add('nid');
       cell.innerHTML = 'N'
+       // la quantité de la nourriture ramassée par toutes les fourmies
+      let totalFood = 0
+      cell.setAttribute("totalFood", totalFood);
     }
     // smell = 1, sinon multiplication par 0 donne toujours 0, ce qui empeche de capter correctement l'odeur de retour
     let smell = 1;
     cell.setAttribute('smell', smell);
+
+
     // smell = pheromone_f, a voir pour supprimer une des deux.
     let pheromone_f = 0;
     cell.setAttribute('pheromone_f', pheromone_f);
@@ -62,6 +67,7 @@ function displayAnt(nbAnts) {
     ant.setAttribute("id", "ant" + i)
     ant.setAttribute("x", center);
     ant.setAttribute("y", center);
+    ant.setAttribute("carried_food", 0); // la quantité de nourriture que la fourmis à apporté 
     ant.setAttribute("energy", 20);
     ant.setAttribute("alpha", 5); // capteur de phéromone entre [0;10]
     ant.setAttribute("beta", 5); // capteur d'odeur entre [0;10]
@@ -94,7 +100,7 @@ function InfoExploration(ant) {
   y = ant.getAttribute('y');
   id = ant.getAttribute('id');
   // On récupere sa position dans la grille, sa cellule
-  let source = document.querySelector(`article[x='${x}'][y='${y}']`);
+  let source = document.querySelector(`article[x='${x}'][y='${y}']`); // c'est la position dans la grille, la où se trouve la fourmie a un moment de temps t
   let nourriture = document.querySelector(`article[class='grid-item food visited']`);
   let nid = document.querySelector(`article[class='grid-item nid']`);
   let meilleur_neighbor = null;
@@ -113,6 +119,11 @@ function InfoExploration(ant) {
   if (source == nid) {
     ant.setAttribute('food', 1);
     document.getElementById(id).style.backgroundColor = 'black';
+    let maxFoodCarried = ant.getAttribute("carried_food");
+    ant.setAttribute("carried_food",maxFoodCarried + 2 ) // la quantité qu'elle peut porter
+    let foodAtTheNid = nid.getAttribute("totalFood");
+    nid.setAttribute("totalFood", foodAtTheNid + 2) // la même quantité que la fourmis porte
+    this.node
     // ant.style.background = rgb(6, 4, 4);
   }
 
@@ -232,6 +243,8 @@ function reset_pheromone() {
     grid[f].setAttribute('pheromone_h', pheromone_h);
   }
 }
+
+
 
 // function getCellNeighbors(node)
 
