@@ -2,12 +2,6 @@ function getParent(x, y) {
    return document.querySelector(`article[x='${x}'][y='${y}']`);
 }
 
-function moveAnt(ant) {
-    let rr = document.getElementById("45")
-    // ant.parentElement.remove();
-    rr.appendChild(ant);
-  }
-  
   let direction = "right";
   function moveAnt(id) {
     let ant = document.getElementById(id);
@@ -109,7 +103,11 @@ function moveAnt(ant) {
                 newParent.appendChild(ant);
             }
         }
-    }  
+    }
+    // Ajout de la perte d'énergie à chaque fois que la fourmi parcours une case
+    energy = ant.getAttribute('energy');
+    energy = energy -1;
+    ant.setAttribute('energy', energy);
   }
   
 
