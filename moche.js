@@ -126,9 +126,7 @@ function moveAnt(ant) {
     ant.setAttribute("totalSteps", antSteps+1);
   }
   
-
-
-
+// ############################################     GETCELLNEIGHBORS     ###################################################################
 
   function getCellNeighbors(node) {
 

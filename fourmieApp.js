@@ -8,6 +8,7 @@ const nbFourmis = 20;
 let y = 0;
 let compteur = 0;
 let TabFourmis;
+let id = 0;
 
 function StartGame() {
   // nb d'itérations total
@@ -28,11 +29,26 @@ function StartGame() {
 
       if(compteur > DureeDeVieGeneration1){
         clearInterval(game);
+        // crossMutation(selectAnts());
+        // newGenerationAnt()
       }
     })
     compteur++;
+    //fourmies = document.querySelectorAll("div[class='child']");
+    console.log(fourmies)
   }, 100);//--Vitesse de "tron"  
 }
+//////////////////////////////////////////////////// MAKE GRID TABLE /////////////////////////////////////////////////////////////////////////////////////////   
+function createAndFillTwoDArray({rows, columns, defaultValue}){
+  return Array.from({ length:rows }, () => (
+      Array.from({ length:columns }, ()=> defaultValue)
+      ))
+}
+
+let pheromone_f_matrice = createAndFillTwoDArray({rows:gridSize, columns:gridSize, defaultValue: 0})
+let pheromone_h_matrice = createAndFillTwoDArray({rows:gridSize, columns:gridSize, defaultValue: 0})
+let pheromone_smell_matrice = createAndFillTwoDArray({rows:gridSize, columns:gridSize, defaultValue: 0})
+
 
 //////////////////////////////////////////////////// MAKEROWS /////////////////////////////////////////////////////////////////////////////////////////   
 function makeRows(rows, cols) {
@@ -64,6 +80,7 @@ function makeRows(rows, cols) {
     // smell = pheromone_f, a voir pour supprimer une des deux.
     let pheromone_f = 1;
     cell.setAttribute('pheromone_f', pheromone_f);
+    pheromone_f_matrice[x][y] = pheromone_f;
 
     let pheromone_h = 1;
     cell.setAttribute('pheromone_h', pheromone_h);
@@ -90,7 +107,7 @@ function displayAnt(nbAnts) {
     let ant = document.createElement("div");
     ants.push(ant)
 
-    ant.setAttribute("id", "ant" + i)
+    ant.setAttribute("id", "ant" + id)
     ant.setAttribute("x", center);
     ant.setAttribute("y", center);
     ant.setAttribute("carried_food", 0); // la quantité de nourriture que la fourmis à apporté 
@@ -106,12 +123,15 @@ function displayAnt(nbAnts) {
 
     let nid = document.querySelector(".nid");
     nid.appendChild(ant)
+    id++;
   }
   return ants;
 }
 
 
 let fourmies = displayAnt(nbFourmis);
+let nid = document.querySelector(`article[x='${center}'][y='${center}']`);
+nid.setAttribute('totalFood', -nbFourmis*2);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////  INFOEXPLORATION ///////////////////////////////////////////////////////////////////////////////////////
@@ -262,32 +282,30 @@ function InfoExploration(ant) {
 
 //////////////////////////////////////////////////// NEWGENERATIONANT /////////////////////////////////////////////////////////////////////////////////////////   
 function newGenerationAnt(alpha, beta) {
+  let ant = document.createElement("div");
 
-  for (let i = 1; i <= nbAnts; i++) {
-    let ant = document.createElement("div");
-    ants.push(ant)
+  ant.setAttribute("id", "ant" + id)
+  ant.setAttribute("x", center);
+  ant.setAttribute("y", center);
+  ant.setAttribute("carried_food", 0); // la quantité de nourriture que la fourmis à apporté 
+  ant.setAttribute("energy", 20);
+  ant.setAttribute("totalSteps", 0); // nombre de pas que la fourmis a fait pendant sa vie. 
+  ant.setAttribute("alpha", alpha); // capteur de phéromone entre [0;10]
+  ant.setAttribute("beta", beta); // capteur d'odeur entre [0;10]
+  ant.setAttribute("food", 0); // Si la fourmi a de la nourriture -- et la quantite de celle-ci, ici 0
+  ant.setAttribute("random", Math.random() * 1);
 
-    ant.setAttribute("id", "ant" + i)
-    ant.setAttribute("x", center);
-    ant.setAttribute("y", center);
-    ant.setAttribute("carried_food", 0); // la quantité de nourriture que la fourmis à apporté 
-    ant.setAttribute("energy", 20);
-    ant.setAttribute("totalSteps", 0); // nombre de pas que la fourmis a fait pendant sa vie. 
-    ant.setAttribute("alpha", alpha); // capteur de phéromone entre [0;10]
-    ant.setAttribute("beta", beta); // capteur d'odeur entre [0;10]
-    ant.setAttribute("food", 0); // Si la fourmi a de la nourriture -- et la quantite de celle-ci, ici 0
-    ant.setAttribute("random", Math.random()*1); 
+  ant.className = "child"
+  ant.innerHTML = "ANT"
 
-    ant.className = "child"
-    ant.innerHTML = "ANT"
+  let nid = document.querySelector(".nid");
+  nid.appendChild(ant)
+  id++;
 
-    let nid = document.querySelector(".nid");
-    nid.appendChild(ant)
-  }
   return ant;
 }
 
-let allANTS = document.querySelectorAll("div");
+let allANTS = document.querySelectorAll("div[class='child']");
 // Selection des fourmis qui ont plus travaillé
 
 //////////////////////////////////////////////////// SELECTANTS /////////////////////////////////////////////////////////////////////////////////////////   
@@ -319,26 +337,27 @@ function crossMutation (topAntWorkers) {
   // let allANTS = document.querySelectorAll("div");
   let newGeneration = topAntWorkers ;
 
-  while (newGeneration.length < 20){
+  while (newGeneration.length <= 20){
 
     let parent_1 =allANTS[Math.floor(Math.random()*allANTS.length)];
     let parent_2 =allANTS[Math.floor(Math.random()*allANTS.length)];
-    let newAlpha = (parseInt(parent_1.getAttribute("alpha")) + parseInt(parent_2.getAttribute("alpha")))/ 2
-    let newBeta = (parseInt(parent_1.getAttribute("beta")) + parseInt(parent_2.getAttribute("beta")))/ 2
+    // a peut être modifier
+    let newAlpha = (parseInt(parent_1.getAttribute("alpha")) + parseInt(parent_2.getAttribute("alpha")))/ 2;
+    let newBeta = (parseInt(parent_1.getAttribute("beta")) + parseInt(parent_2.getAttribute("beta")))/ 2; 
    
     // $$$$$$$$$$$$$$$$$$$$$$$$$$$$     MUTATION     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    // la probabilité que la mutation arrive avec un taux de 0.75%
+    // la probabilité que la mutation arrive avec un taux de 1%
     let probaAntWillMutate = Math.floor(Math.random()*100) + 1
-    
+    let tauxDeMutation = 0.95;
     if( probaAntWillMutate === 5 ) {
     // la probabilite 1 sur 2 que la mutation sera ajouté ou soustraite
       let probaPlusOrMinus = Math.floor(Math.random()*2);
       if (probaPlusOrMinus === 0) {
-        newAlpha *= -0.95
-        newAlpha *= -0.95
+        newAlpha *= -tauxDeMutation
+        newAlpha *= -tauxDeMutation
       } else {
-        newAlpha *= 0.95
-        newAlpha *= 0.95
+        newAlpha *= tauxDeMutation
+        newAlpha *= tauxDeMutation
       }
     }
     //creation de la nouvelle generation a partir des 
@@ -351,6 +370,7 @@ function crossMutation (topAntWorkers) {
   let tousAnts = document.querySelectorAll("div");
   for (let ant of tousAnts) {
     if (!newGeneration.includes(ant)) {
+      fourmies.splice(cpt, 1); // A voir si on laisse ca 
       ant.remove();
     }
   }
@@ -448,8 +468,7 @@ function foodSmellRepartition(node) {
   return neighbors;
 }
 
-let nid = document.querySelector(`article[x='${center}'][y='${center}']`);
-nid.setAttribute('totalFood', -nbFourmis*2);
+
 
 
 // ############################################ tests ici ########################################################
