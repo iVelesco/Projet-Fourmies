@@ -1,10 +1,12 @@
 function getParent(x, y) {
    return document.querySelector(`article[x='${x}'][y='${y}']`);
 }
+let directions = ["left","left-down","down", "right-down", "right-up", "right", "up", "left-up",];
+let indexDebut = Math.floor(Math.random()*8);
+let direction = directions[indexDebut];
 
-  let direction = "right";
-  function moveAnt(id) {
-    let ant = document.getElementById(id);
+function moveAnt(ant) {
+    let id = ant.getAttribute('id');
   
     //pour colorer la celule
     // let cell = document.querySelector(`div[x='${svg.getBBox().x}'][y='${svg.getBBox().y}']`);
@@ -104,10 +106,24 @@ function getParent(x, y) {
             }
         }
     }
+
     // Ajout de la perte d'énergie à chaque fois que la fourmi parcours une case
-    energy = ant.getAttribute('energy');
-    energy = energy -1;
-    ant.setAttribute('energy', energy);
+    let energy = parseInt(ant.getAttribute('energy'));
+    ant.setAttribute('energy', energy-1);
+    if(energy <= 0){
+        // si elle n'a plus d'energie elle meurt
+        // Pour cela on parcours le tableau de fourmi, on trouve sa position et on la supprime
+        for(let cpt =0; cpt<fourmies.length; cpt++){
+            fourmi = fourmies[cpt];
+            if(ant == fourmi){
+                fourmies.splice(cpt, 1);
+                ant.remove();
+            }
+        }
+    }
+    // incrementer le nombre des pas que la fourmie fait pendant sa vie
+    let antSteps = parseInt(ant.getAttribute("totalSteps"));
+    ant.setAttribute("totalSteps", antSteps+1);
   }
   
 
@@ -159,5 +175,3 @@ function getParent(x, y) {
   
     return neighbors;
 }
-
-

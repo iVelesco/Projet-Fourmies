@@ -1,9 +1,40 @@
 const container = document.getElementById("container");
-
-const gridSize = 11;
+// afficher pheromone
+const gridSize = 7;
 let center = parseInt(gridSize / 2);
-
+const maxEnergy = 50;//0.2*gridSize*gridSize;
+const DureeDeVieGeneration1 = 200; // a revoir
+const nbFourmis = 20;
 let y = 0;
+let compteur = 0;
+let TabFourmis;
+
+function StartGame() {
+  // nb d'itérations total
+  game = setInterval(function () {
+    fourmies.forEach((elem) => {
+      let index //= Math.floor(Math.random() * directions.length);
+
+      // plutot récuperer x et y ?
+      if (InfoExploration(elem) == -1) {
+        index = Math.floor(Math.random() * directions.length); // random direction 
+      }
+      else {
+        index = InfoExploration(elem);
+      }
+      direction = directions[index];
+      // console.log(direction);
+      moveAnt(elem);
+
+      if(compteur > DureeDeVieGeneration1){
+        clearInterval(game);
+      }
+    })
+    compteur++;
+  }, 100);//--Vitesse de "tron"  
+}
+
+//////////////////////////////////////////////////// MAKEROWS /////////////////////////////////////////////////////////////////////////////////////////   
 function makeRows(rows, cols) {
   container.style.setProperty('--grid-rows', rows);
   container.style.setProperty('--grid-cols', cols);
@@ -26,20 +57,15 @@ function makeRows(rows, cols) {
     if (c === parseInt(rows * cols / 2)) {
       cell.classList.add('nid');
       cell.innerHTML = 'N'
-       // la quantité de la nourriture ramassée par toutes les fourmies
-      let totalFood = 0
-      cell.setAttribute("totalFood", totalFood);
     }
     // smell = 1, sinon multiplication par 0 donne toujours 0, ce qui empeche de capter correctement l'odeur de retour
     let smell = 1;
     cell.setAttribute('smell', smell);
-
-
     // smell = pheromone_f, a voir pour supprimer une des deux.
-    let pheromone_f = 0;
+    let pheromone_f = 1;
     cell.setAttribute('pheromone_f', pheromone_f);
 
-    let pheromone_h = 0;
+    let pheromone_h = 1;
     cell.setAttribute('pheromone_h', pheromone_h);
 
     cell.addEventListener('click', (event) => {
@@ -69,9 +95,12 @@ function displayAnt(nbAnts) {
     ant.setAttribute("y", center);
     ant.setAttribute("carried_food", 0); // la quantité de nourriture que la fourmis à apporté 
     ant.setAttribute("energy", 20);
-    ant.setAttribute("alpha", 5); // capteur de phéromone entre [0;10]
-    ant.setAttribute("beta", 5); // capteur d'odeur entre [0;10]
+    ant.setAttribute("totalSteps", 0); // nombre de pas que la fourmis a fait pendant sa vie. 
+    ant.setAttribute("alpha", 5/*(Math.random() * 10) +1*/); // capteur de phéromone entre [0;10]
+    ant.setAttribute("beta",5 /*(Math.random() * 10) +1*/); // capteur d'odeur entre [0;10]
     ant.setAttribute("food", 0); // Si la fourmi a de la nourriture -- et la quantite de celle-ci, ici 0
+    ant.setAttribute("random", 0.05);//Math.random()*1); 
+
     ant.className = "child"
     ant.innerHTML = "ANT"
 
@@ -81,113 +110,253 @@ function displayAnt(nbAnts) {
   return ants;
 }
 
-// let fif = displayAnt(10);
 
-// console.log(fif)
-
-
-let fourmies = displayAnt(20);
-
-let directions = ["right", "right-down", "right-up", "left", "left-up", "left-down", "down", "up"];
+let fourmies = displayAnt(nbFourmis);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////  LES MODIF ICI ///////////////////////////////////////////////////////////////////////////////////////
-////////// Pourquoi ca ne marche pas ? : car il retourne la case sur laquelle la fourmi doit aller et non le numéro de la direction ////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////  INFOEXPLORATION ///////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function InfoExploration(ant) {
-  // On récupere la position de la fourmi sur son div
-  x = ant.getAttribute('x');
-  y = ant.getAttribute('y');
-  id = ant.getAttribute('id');
-  // On récupere sa position dans la grille, sa cellule
-  let source = document.querySelector(`article[x='${x}'][y='${y}']`); // c'est la position dans la grille, la où se trouve la fourmie a un moment de temps t
-  let nourriture = document.querySelector(`article[class='grid-item food visited']`);
-  let nid = document.querySelector(`article[class='grid-item nid']`);
-  let meilleur_neighbor = null;
+  let random = Math.random() * 1;
+  let voisin_pos_final = -1;
+  if (random > ant.getAttribute('random')) {
+    // On récupere la position de la fourmi sur son div
+    x = ant.getAttribute('x');
+    y = ant.getAttribute('y');
+    id = ant.getAttribute('id');
 
-  let alpha = ant.getAttribute('alpha');
-  let beta = ant.getAttribute('beta');
-  let vf = ant.getAttribute('food'); // valeur de la nourriture que la fourmi porte
+    // On récupere sa position dans la grille, sa cellule
+    let source = document.querySelector(`article[x='${x}'][y='${y}']`);
+    let nourriture = document.querySelectorAll(`article[class='grid-item food visited']`);
+    let nid = document.querySelector(`article[class='grid-item nid']`);
+    let meilleur_neighbor = null;
 
-  // Si on est sur la case de la nourriture, on prend 1 unité de nourriture et on devient rouge
-  if (source == nourriture) {
-    ant.setAttribute('food', 1);
-    document.getElementById(id).style.backgroundColor = 'red';
-    // ant.style.background = rgb(6, 4, 4);
-  }
-  // Si on est sur la case du nid, on perd 1 unité de nourriture et on devient noir
-  if (source == nid) {
-    ant.setAttribute('food', 1);
-    document.getElementById(id).style.backgroundColor = 'black';
-    let maxFoodCarried = ant.getAttribute("carried_food");
-    ant.setAttribute("carried_food",maxFoodCarried + 2 ) // la quantité qu'elle peut porter
-    let foodAtTheNid = nid.getAttribute("totalFood");
-    nid.setAttribute("totalFood", foodAtTheNid + 2) // la même quantité que la fourmis porte
-    this.node
-    // ant.style.background = rgb(6, 4, 4);
-  }
+    let alpha = ant.getAttribute('alpha');
+    let beta = ant.getAttribute('beta');
+    let vf = ant.getAttribute('food'); // valeur de la nourriture que la fourmi porte
+    let nf = 0.2 * ant.getAttribute('energy'); // x_neighbor * y_neighbor; // pour le moment nf, mais à l'avenir prendre ncf (en supprimant l'energie consommée)
+    let ncf = maxEnergy - nf;
 
-  for (let i = 0; i < getCellNeighbors(source).length; i++) {
-    let neighbor = getCellNeighbors(source)[i];
+    let proba = 0;
+    let voisin_pos = -1;
+    let voisin_pos_final = -1;
 
-    x_neighbor = neighbor.getAttribute('x');
-    y_neighbor = neighbor.getAttribute('y');
+    let pheromone1 = 10 / (1 + ncf); // exploration 
+    let pheromone2 = vf / (1 + ncf); // retour 
+    // on ajoute le pheromone_h = p1  si retour 
+    if (ant.getAttribute('food') == 1) {
+      p2_f = parseFloat(source.getAttribute('pheromone_f'));
+      source.setAttribute('pheromone_f', pheromone2 + p2_f)
+    }
+    // on ajoute le pheromone_f = p2  si exploration 
+    else {
+      p1_h = parseFloat(source.getAttribute('pheromone_h'));
+      source.setAttribute('pheromone_h', pheromone1 + p1_h)
+    }
 
-    let nf = 0.2 // x_neighbor * y_neighbor; // pour le moment nf, mais à l'avenir prendre ncf (en supprimant l'energie consommée)
+    // Si on est sur la case de la nourriture, on prend 1 unité de nourriture et on devient rouge
+    for (let compt = 0; compt < nourriture.length; compt++) {
+      if (source == nourriture[compt]) {
+        ant.setAttribute('food', 1);
+        ant.setAttribute('energy', maxEnergy);
+        document.getElementById(id).style.backgroundColor = 'red';
+      }
+    }
 
-    // On récupére pheromone_f et _h de la cellule voisine sur laquelle on est
-    let pheromone_f = parseFloat(neighbor.getAttribute('smell')); // pheronome_f
-    let pheromone1 = 10 / 1 + nf; // exploration 
-    let pheromone2 = vf / 1 + nf; // retour 
+    // Si on est sur la case du nid, on perd 1 unité de nourriture et on devient noir
+    if (source == nid) {
+      ant.setAttribute('food', 0);
+      ant.setAttribute('energy', maxEnergy);
+      document.getElementById(id).style.backgroundColor = 'black';
+      let maxFoodCarried = parseInt(ant.getAttribute("carried_food"));
+      ant.setAttribute("carried_food", maxFoodCarried + 2) // la quantité qu'elle peut porter
+      let foodAtTheNid = parseInt(nid.getAttribute("totalFood"));
+      nid.setAttribute("totalFood", foodAtTheNid + 2) // la même quantité que la fourmis porte
+      document.getElementById('nbFood').innerHTML = nid.getAttribute("totalFood");
+    }
 
-    let probaVoisines = 1, meilleur = 0;
-    let proba = Math.pow(pheromone2, alpha) * Math.pow(pheromone_f, beta);  // formule du haut 
-  
-    for (let j = 0; j < getCellNeighbors(neighbor).length; j++) {
-      let neighborV = getCellNeighbors(source)[i];
-      // On récupére pheromone_f et _h de la cellule voisine à la voisine
-      let pheronome_f_voisin = neighborV.getAttribute('smell');
-      let pheromone2_voisin = 10 / 1 + nf;
+    for (let i = 0; i < getCellNeighbors(source).length; i++) {
+      voisin_pos = i;
+      let neighbor = getCellNeighbors(source)[i];
 
-      // SI food=1, ca veut dire qu'on a de la nourriture
+      x_neighbor = neighbor.getAttribute('x');
+      y_neighbor = neighbor.getAttribute('y');
+
+      // On récupére pheromone_f et _h de la cellule voisine sur laquelle on est
+      let pheromone_f = parseFloat(neighbor.getAttribute('pheromone_f')); // pheronome_f
+      let pheromone_h = parseFloat(neighbor.getAttribute('pheromone_h'));
+      let pheromone_smell = parseFloat(neighbor.getAttribute('smell'));
+
+
+      let probaVoisines = 0, meilleur = 0;
       if (ant.getAttribute('food') == 1) {
-        // On calcul la proba de retour 
-        probaVoisines = probaVoisines + parseFloat(pheromone1) / (parseFloat(pheromone2_voisin));
-
+        proba = Math.pow(pheromone_h, alpha)  // formule du haut en mode RETOUR
       } else {
-        // On calcul la proba d'exploration 
-        probaVoisines = probaVoisines + (Math.pow(pheronome_f_voisin, alpha) * Math.pow(pheromone2_voisin, beta));
+        proba = Math.pow(pheromone_f, alpha) * Math.pow(pheromone_smell, beta);  // formule du haut en mode EXPLORATION
       }
-    }
-    if ((proba / probaVoisines) > meilleur) {
-      meilleur = proba;
-      meilleur_neighbor = neighbor
+
+      for (let j = 0; j < getCellNeighbors(neighbor).length; j++) {
+        let neighborV = getCellNeighbors(source)[i];
+        // On récupére pheromone_f et _h de la cellule voisine à la voisine
+        let pheronome_smell_voisin = neighborV.getAttribute('smell');
+        let pheromone_f_voisin = neighborV.getAttribute('pheromone_f');
+        let pheronome_h_voisin = neighborV.getAttribute('pheromone_h');
+        // SI food=1, ca veut dire qu'on a de la nourriture
+        if (ant.getAttribute('food') == 1) {
+          // On calcul la proba de retour 
+          probaVoisines = probaVoisines + Math.pow(pheronome_h_voisin, alpha);
+        } else {
+          // On calcul la proba d'exploration 
+          probaVoisines = probaVoisines + (Math.pow(pheronome_smell_voisin, beta) * Math.pow(pheromone_f_voisin, alpha));
+
+
+        }
+      }
+      let proba_total = proba / probaVoisines;
+      if (proba_total > meilleur) {
+        meilleur = proba;
+        meilleur_neighbor = neighbor
+        voisin_pos_final = voisin_pos;
+      }
     }
   }
-  
-  return null; //meilleur_neighbor;
+  else {
+    x = ant.getAttribute('x');
+    y = ant.getAttribute('y');
+    id = ant.getAttribute('id');
+
+    let vf = ant.getAttribute('food'); // valeur de la nourriture que la fourmi porte
+    let nf = 0.2 * ant.getAttribute('energy');
+    let nourriture = document.querySelectorAll(`article[class='grid-item food visited']`);
+
+    let source = document.querySelector(`article[x='${x}'][y='${y}']`);
+    let ncf = maxEnergy - nf;
+    let pheromone1 = 10 / (1 + ncf); // exploration 
+    let pheromone2 = vf / (1 + ncf); // retour
+
+    
+    // Si on est sur la case de la nourriture, on prend 1 unité de nourriture et on devient rouge
+    for (let compt = 0; compt < nourriture.length; compt++) {
+      if (source == nourriture[compt]) {
+        ant.setAttribute('food', 1);
+        ant.setAttribute('energy', maxEnergy);
+        document.getElementById(id).style.backgroundColor = 'red';
+      }
+    }
+
+    // on ajoute le pheromone_h = p1  si retour 
+    if (ant.getAttribute('food') == 1) {
+      p2_f = parseFloat(source.getAttribute('pheromone_f'));
+      source.setAttribute('pheromone_f', pheromone2 + p2_f)
+    }
+    // on ajoute le pheromone_f = p2  si exploration 
+    else {
+      p1_h = parseFloat(source.getAttribute('pheromone_h'));
+      source.setAttribute('pheromone_h', pheromone1 + p1_h)
+    }
+  }
+  document.getElementById('nbTour').innerHTML = compteur;
+  return voisin_pos_final; //meilleur_neighbor;
 }
 
-function StartGame() {
-  setInterval(function () {
+//////////////////////////////////////////////////// NEWGENERATIONANT /////////////////////////////////////////////////////////////////////////////////////////   
+function newGenerationAnt(alpha, beta) {
 
-    fourmies.forEach((elem) => {
-      let index //= Math.floor(Math.random() * directions.length);
+  for (let i = 1; i <= nbAnts; i++) {
+    let ant = document.createElement("div");
+    ants.push(ant)
 
-      // plutot récuperer x et y ?
-      if (InfoExploration(elem) == null) {
-        index = Math.floor(Math.random() * directions.length); // random direction 
-      }
-      else {
-        index = InfoExploration(elem);
-      }
-      direction = directions[index];
-      // console.log(direction);
-      moveAnt(elem.getAttribute('id'));
-    })
-  }, 300);//--Vitesse de "tron"  
+    ant.setAttribute("id", "ant" + i)
+    ant.setAttribute("x", center);
+    ant.setAttribute("y", center);
+    ant.setAttribute("carried_food", 0); // la quantité de nourriture que la fourmis à apporté 
+    ant.setAttribute("energy", 20);
+    ant.setAttribute("totalSteps", 0); // nombre de pas que la fourmis a fait pendant sa vie. 
+    ant.setAttribute("alpha", alpha); // capteur de phéromone entre [0;10]
+    ant.setAttribute("beta", beta); // capteur d'odeur entre [0;10]
+    ant.setAttribute("food", 0); // Si la fourmi a de la nourriture -- et la quantite de celle-ci, ici 0
+    ant.setAttribute("random", Math.random()*1); 
+
+    ant.className = "child"
+    ant.innerHTML = "ANT"
+
+    let nid = document.querySelector(".nid");
+    nid.appendChild(ant)
+  }
+  return ant;
 }
 
+let allANTS = document.querySelectorAll("div");
+// Selection des fourmis qui ont plus travaillé
+
+//////////////////////////////////////////////////// SELECTANTS /////////////////////////////////////////////////////////////////////////////////////////   
+function selectAnts(){
+  // let allANTS = document.querySelectorAll("div");
+  // le seuil de nourriture porté par les fourmies. 
+  let nourriturePorteParChaqueFourmis = [];
+  allANTS.forEach((elem) => {
+    nourriturePorteParChaqueFourmis.push(parseInt(elem.getAttribute("carried_food")));
+    console.log(nourriturePorteParChaqueFourmis);
+  })
+  let k =  Math.max( ...nourriturePorteParChaqueFourmis);
+
+  let bestWorkers =[];
+  allANTS.forEach((elem) => {
+    // on cherche si les fourmies ont porte de la nourriture au moins une fois..... 
+    if (parseInt(elem.getAttribute("carried_food")) > (k - 3) ) {
+    // if (parseInt(elem.getAttribute("totalSteps")) > dureeDevie1Genereation) { 
+      bestWorkers.push(elem);
+    }
+  });
+  return bestWorkers;
+}
+//let bestWorkers = selectAnts();
+//let fourmiesG2 = newGenerationAnt(nbFourmis);
+//////////////////////////////////////////////////// CROSSMUTATION /////////////////////////////////////////////////////////////////////////////////////////   
+function crossMutation (topAntWorkers) {
+
+  // let allANTS = document.querySelectorAll("div");
+  let newGeneration = topAntWorkers ;
+
+  while (newGeneration.length < 20){
+
+    let parent_1 =allANTS[Math.floor(Math.random()*allANTS.length)];
+    let parent_2 =allANTS[Math.floor(Math.random()*allANTS.length)];
+    let newAlpha = (parseInt(parent_1.getAttribute("alpha")) + parseInt(parent_2.getAttribute("alpha")))/ 2
+    let newBeta = (parseInt(parent_1.getAttribute("beta")) + parseInt(parent_2.getAttribute("beta")))/ 2
+   
+    // $$$$$$$$$$$$$$$$$$$$$$$$$$$$     MUTATION     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    // la probabilité que la mutation arrive avec un taux de 0.75%
+    let probaAntWillMutate = Math.floor(Math.random()*100) + 1
+    
+    if( probaAntWillMutate === 5 ) {
+    // la probabilite 1 sur 2 que la mutation sera ajouté ou soustraite
+      let probaPlusOrMinus = Math.floor(Math.random()*2);
+      if (probaPlusOrMinus === 0) {
+        newAlpha *= -0.95
+        newAlpha *= -0.95
+      } else {
+        newAlpha *= 0.95
+        newAlpha *= 0.95
+      }
+    }
+    //creation de la nouvelle generation a partir des 
+    let newGenAnt = newGenerationAnt(newAlpha, newBeta);
+    nid.appendChild(newGenAnt);
+    newGeneration.push(newGenAnt);
+  }
+
+  // a la fin on va tuer les autres fourmis... qui ne sont pas comprises dans la nouvelle generation mais qui sont encore en vie
+  let tousAnts = document.querySelectorAll("div");
+  for (let ant of tousAnts) {
+    if (!newGeneration.includes(ant)) {
+      ant.remove();
+    }
+  }
+}
+
+//////////////////////////////////////////////////// ADDFOOD /////////////////////////////////////////////////////////////////////////////////////////   
 function addFood(x, y, value) {
   let source = document.querySelector(`article[x='${x}'][y='${y}']`);
   source.innerHTML = 'F';
@@ -227,12 +396,12 @@ function addFood(x, y, value) {
     //   console.log(k)
   }
 }
-
 addFood(0, 0, 10)
-// addFood(0, gridSize-1, 10)
+addFood(0, gridSize-1, 10)
 // addFood(gridSize-1, 0, 10)
 // addFood(gridSize-1, gridSize-1, 10)
 
+//////////////////////////////////////////////////// RESET_PHEROMONE /////////////////////////////////////////////////////////////////////////////////////////   
 function reset_pheromone() {
   let grid = document.querySelectorAll('article');
   for (let f = 0; f < grid.length; f++) {
@@ -244,11 +413,8 @@ function reset_pheromone() {
   }
 }
 
+//////////////////////////////////////////////////// FOODSMELLEREPARTITION /////////////////////////////////////////////////////////////////////////////////////////   
 
-
-// function getCellNeighbors(node)
-
-// function foodSmellRepartition(node)
 function foodSmellRepartition(node) {
 
   let neighbors = []; //returned array
@@ -283,7 +449,7 @@ function foodSmellRepartition(node) {
 }
 
 let nid = document.querySelector(`article[x='${center}'][y='${center}']`);
-
+nid.setAttribute('totalFood', -nbFourmis*2);
 
 
 // ############################################ tests ici ########################################################
