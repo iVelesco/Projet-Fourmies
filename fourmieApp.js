@@ -335,15 +335,21 @@ function selectAnts(){
   let k = Math.max(...nourriturePorteParChaqueFourmis);
   let tri = nourriturePorteParChaqueFourmis.sort();
   let bestWorkers = [];
-  // allANTS.forEach((elem) => {
-  //   // on cherche si les fourmies ont porte de la nourriture au moins une fois..... 
-  //   if (parseInt(elem.getAttribute("carried_food")) > (k - 3) ) {
-  //   // if (parseInt(elem.getAttribute("totalSteps")) > dureeDevie1Genereation) { 
-  //     bestWorkers.push(elem);
-  //   }
-  // });
-  for(let nbChoisi=0; nbChoisi<10; nbChoisi++){
-    bestWorkers[nbChoisi] = tri[tri.length-nbChoisi];
+  allANTS.forEach((elem) => {
+    // on cherche si les fourmies ont porte de la nourriture au moins une fois..... 
+    if (parseInt(elem.getAttribute("carried_food")) > 0) {
+    // if (parseInt(elem.getAttribute("totalSteps")) > dureeDevie1Genereation) { 
+      bestWorkers.push(elem);
+    }
+  });
+
+  // pour avoir au moins 2 fourmis parents
+  if(bestWorkers.length < 1){
+    bestWorkers.push(allANTS[Math.floor(Math.random()*allANTS.length)]);
+    bestWorkers.push(allANTS[Math.floor(Math.random()*allANTS.length)]);
+  }
+  if(bestWorkers.length < 2){
+    bestWorkers.push(allANTS[Math.floor(Math.random()*allANTS.length)]);
   }
   return bestWorkers;
 }
@@ -354,10 +360,10 @@ function crossMutation (topAntWorkers) {
 
   let allANTS = document.querySelectorAll("div");
   let newGeneration = topAntWorkers ;
-  while (newGeneration.length <= 20){
+  while (newGeneration.length <= nbFourmis){
 
-    let parent_1 =allANTS[Math.floor(Math.random()*allANTS.length)];
-    let parent_2 =allANTS[Math.floor(Math.random()*allANTS.length)];
+    let parent_1 =allANTS[Math.floor(Math.random()*allANTS.length)]; // on choisi aléatoirement parmis tous les parents
+    let parent_2 =allANTS[Math.floor(Math.random()*allANTS.length)]; //  ainsi on peut avoir 2 fois le même parents
     // a peut être modifier
     let newAlpha = (parseInt(parent_1.getAttribute("alpha")) + parseInt(parent_2.getAttribute("alpha")))/ 2;
     let newBeta = (parseInt(parent_1.getAttribute("beta")) + parseInt(parent_2.getAttribute("beta")))/ 2; 
@@ -371,10 +377,10 @@ function crossMutation (topAntWorkers) {
       let probaPlusOrMinus = Math.floor(Math.random()*2);
       if (probaPlusOrMinus === 0) {
         newAlpha *= -tauxDeMutation
-        newAlpha *= -tauxDeMutation
+        newBeta *= -tauxDeMutation
       } else {
         newAlpha *= tauxDeMutation
-        newAlpha *= tauxDeMutation
+        newBeta *= tauxDeMutation
       }
     }
     //creation de la nouvelle generation a partir des 
@@ -433,7 +439,7 @@ function addFood(x, y, value) {
   }
 }
 addFood(0, 0, 10)
-//addFood(0, gridSize-1, 10)
+addFood(0, gridSize-1, 10)
 //addFood(gridSize-1, 0, 10)
 //addFood(gridSize-1, gridSize-1, 10)
 
