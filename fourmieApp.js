@@ -147,10 +147,12 @@ function InfoExploration(ant) {
 
   let random = Math.random() * 1;
   let voisin_pos_final = -1;
-
   pheromone_f_matrice[x][y] = source.getAttribute('pheromone_f');
+  console.log("pheromone_f_matrice: ");
+  console.log(pheromone_f_matrice);
   // document.getElementById('Matrice').innerHTML = pheromone_f_matrice;
-
+  console.log("pheromone_h_matrice");
+  console.log(pheromone_h_matrice);
   pheromone_h_matrice[x][y] = source.getAttribute('pheromone_h');
   // document.getElementById('Matrice2').innerHTML = pheromone_h_matrice;
 
