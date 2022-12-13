@@ -4,6 +4,8 @@ function getParent(x, y) {
 let directions = ["left","left-down","down", "right-down", "right-up", "right", "up", "left-up",];
 let indexDebut = Math.floor(Math.random()*8);
 let direction = directions[indexDebut];
+let fourmiesMorte = [];
+let morte = 0;
 
 function moveAnt(ant) {
     let id = ant.getAttribute('id');
@@ -117,6 +119,8 @@ function moveAnt(ant) {
             fourmi = fourmies[cpt];
             if(ant == fourmi){
                 fourmies.splice(cpt, 1);
+                fourmiesMorte[morte] = ant; 
+                morte++;
                 ant.remove();
             }
         }

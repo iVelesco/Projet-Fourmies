@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="fourmieStyle.css" />
-    <title>Fourmies</title>
-  </head>
-  <body>
-    <button onclick="StartGame()" style="margin-bottom:10px">Lancer</button>
-    <button onclick="clearInterval(game)">Stop</button>
-    <p>Nombre de nourriture ramener dans le nid : </p>
-    <div id="nbFood"></div>
-    <p>Nombre de tour : </p>
-    <div id="nbTour"></div>
-    <div id="container"></div>
-    <script src="fourmieApp.js"></script>
-    <script src="moche.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="fourmieStyle.css" />
+
+  <title>Fourmies</title>
+</head>
+
+<body>
+  <button onclick="StartGame()" style="margin-bottom:10px">Lancer</button>
+  <button onclick="clearInterval(game)">Stop</button>
+  <p>Nombre de nourriture ramener dans le nid : </p>
+  <div id="nbFood"></div>
+  <p>Nombre de tour : </p>
+  <div id="nbTour"></div>
+  <!-- <p>pheromone_f : </p>
+  <div id="Matrice"></div>
+  <p>pheromone_h : </p>
+  <div id="Matrice2"></div> -->
+  <div id="container"></div>
+  <script src="fourmieApp.js"></script>
+  <script src="moche.js"></script>
+  
+</body>
+
 </html>
